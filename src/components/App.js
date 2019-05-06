@@ -9,7 +9,7 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <PianoRoll width="400" height="400"/>
+      <PianoRoll width="600" height="400"/>
     );
   }
 }

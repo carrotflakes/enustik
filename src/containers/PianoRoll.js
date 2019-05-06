@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import { addNote } from '../moducks/events';
+import * as events from '../moducks/events';
 
 import PianoRoll from '../components/PianoRoll';
 
@@ -9,6 +9,12 @@ export default connect(
   }),
   dispatch =>({
     addNote(value) {
-      dispatch(addNote(value));
-    }
+      dispatch(events.addNote(value));
+    },
+    removeEvent(value) {
+      dispatch(events.removeEvent(value));
+    },
+    moveNote(value) {
+      dispatch(events.moveNote(value));
+    },
   }))(PianoRoll);
