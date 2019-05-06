@@ -1,0 +1,8 @@
+.tools > div {
+  display: inline-block;
+  cursor: pointer;
+  padding: 2px;
+  margin: 2px;
+  border: solid 1px #999;
+  border-radius: 3px;
+}
