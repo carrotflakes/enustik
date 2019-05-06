@@ -11,6 +11,6 @@ store.runSaga();
 
 render(
   <Provider store={store}>
-    <App width="400" height="400"/>
+    <App/>
   </Provider>,
   document.getElementById('root'));

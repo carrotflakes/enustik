@@ -5,10 +5,6 @@ import App from '../components/App';
 
 export default connect(
   state => ({
-    events: state.events.events
   }),
   dispatch =>({
-    addNote(value) {
-      dispatch(addNote(value));
-    }
   }))(App);
