@@ -1,6 +1,7 @@
 import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 import { all } from 'redux-saga/effects';
+import logger from 'redux-logger';
 import moducks from './moducks/moducks';
 
 export default function configureStore(reducers, sagas) {
@@ -9,7 +10,7 @@ export default function configureStore(reducers, sagas) {
 
   const store = createStore(
     combineReducers(reducers),
-    composeEnhancers(applyMiddleware(sagaMiddleware)));
+    composeEnhancers(applyMiddleware(logger, sagaMiddleware)));
 
   return {
     ...store,
