@@ -58,6 +58,7 @@ export default class PianoRoll extends React.Component {
           mode: 'putting',
           event: {
             id: -1,
+            channel: 0,
             notenum,
             start: tick,
             duration: resolution * n / d

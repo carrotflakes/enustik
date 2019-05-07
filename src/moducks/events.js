@@ -2,8 +2,8 @@ import moducks from './moducks';
 import { resolution } from '../consts';
 
 const initialState = {
-  events: [{id: 1, type: 'note', notenum: 60, start: 0 * resolution, duration: resolution}],
-  eventId: 2,
+  events: [],
+  eventId: 1,
 };
 
 export const {
