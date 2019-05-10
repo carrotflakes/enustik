@@ -3,7 +3,7 @@ import createSagaMiddleware from 'redux-saga';
 import { all } from 'redux-saga/effects';
 import logger from 'redux-logger';
 
-export default function configureStore(reducers, sagas) {
+export default function configureStore(reducers, saga) {
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
   const sagaMiddleware = createSagaMiddleware();
 
@@ -11,9 +11,7 @@ export default function configureStore(reducers, sagas) {
     combineReducers(reducers),
     composeEnhancers(applyMiddleware(logger, sagaMiddleware)));
 
-  sagaMiddleware.run(function*() {
-    yield sagas;
-  });
+  sagaMiddleware.run(saga);
 
   return store;
 }

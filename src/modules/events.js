@@ -67,3 +67,6 @@ export function reducer(state=initialState, action) {
     },
   }[action.type] || (()=>state))(action);
 }
+
+export function* rootSaga() {
+}

@@ -2,11 +2,11 @@ import React from  'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import * as reducers from './reducers';
-import * as sagas from './sagas';
+import saga from './sagas';
 import configureStore from './store';
 import App from './containers/App';
-console.log(reducers)
-const store = configureStore(reducers, sagas);
+
+const store = configureStore(reducers, saga);
 
 render(
   <Provider store={store}>
