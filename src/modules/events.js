@@ -51,19 +51,15 @@ export function reducer(state=initialState, action) {
         events: events.filter(event => event.id !== eventId)
       };
     },
-    [MOVE_NOTE]({id: eventId, notenum, start, duration}) {
-      const events = state.events.map(event => {
-        if (event.id === eventId) {
-          return {
-            ...event,
-            notenum: notenum === undefined ? event.notenum : notenum,
-            start: start === undefined ? event.start : start,
-            duration: duration === undefined ? event.duration : duration
-          };
-        } else {
-          return event;
-        }
-      });
+    [MOVE_NOTE]({note: {id: eventId, notenum, start, duration}}) {
+      const events = state.events.map(event => (
+        event.id === eventId ?
+        {
+          ...event,
+          notenum: notenum === undefined ? event.notenum : notenum,
+          start: start === undefined ? event.start : start,
+          duration: duration === undefined ? event.duration : duration
+        } : event));
       return {
         ...state,
         events
