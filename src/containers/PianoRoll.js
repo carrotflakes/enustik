@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import * as events from '../moducks/events';
+import * as events from '../modules/events';
 
 import PianoRoll from '../components/PianoRoll';
 

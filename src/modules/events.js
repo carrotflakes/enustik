@@ -1,19 +1,40 @@
-import moducks from './moducks';
 import { resolution } from '../consts';
+
+const ADD_NOTE = 'enustik/events/ADD_NOTE';
+const REMOVE_EVENT = 'enustik/events/REMOVE_EVENT';
+const MOVE_NOTE = 'enustik/events/MOVE_NOTE';
+
+export function addNote(note) {
+  return {
+    type: ADD_NOTE,
+    note
+  };
+}
+
+export function removeEvent(eventId) {
+  return {
+    type: REMOVE_EVENT,
+    eventId
+  };
+}
+
+export function moveNote(note) {
+  return {
+    type: MOVE_NOTE,
+    note
+  };
+}
 
 const initialState = {
   events: [],
   eventId: 1,
 };
 
-export const {
-  events, sagas,
-  addNote, removeEvent, moveNote
-} = moducks.createModule('events', {
-  ADD_NOTE: {
-    reducer(state, {payload}) {
+export function reducer(state=initialState, action) {
+  return ({
+    [ADD_NOTE]({note}) {
       const event = {
-        ...payload,
+        ...note,
         id: state.eventId,
         type: 'note'
       };
@@ -22,19 +43,15 @@ export const {
         events: [...state.events, event],
         eventId: state.eventId + 1
       };
-    }
-  },
-  REMOVE_EVENT: {
-    reducer(state, {payload: eventId}) {
+    },
+    [REMOVE_EVENT]({eventId}) {
       const {events} = state;
       return {
         ...state,
         events: events.filter(event => event.id !== eventId)
       };
-    }
-  },
-  MOVE_NOTE: {
-    reducer(state, {payload: {id: eventId, notenum, start, duration}}) {
+    },
+    [MOVE_NOTE]({id: eventId, notenum, start, duration}) {
       const events = state.events.map(event => {
         if (event.id === eventId) {
           return {
@@ -51,6 +68,6 @@ export const {
         ...state,
         events
       };
-    }
-  },
-}, initialState);
+    },
+  }[action.type] || (()=>state))(action);
+}
