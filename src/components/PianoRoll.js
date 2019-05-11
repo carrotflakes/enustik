@@ -5,11 +5,12 @@ import { resolution } from '../consts';
 export default class PianoRoll extends React.Component {
   constructor(props) {
     super(props);
+    const heightScale = 6 * 3;
     this.state = {
       widthScale: 24 * 3,
-      heightScale: 6 * 3,
+      heightScale,
       scrollX: 0,
-      scrollY: 0,
+      scrollY: -heightScale * 12 * 4 + props.height / 2,
       mode: null,
       event: null,
       movingEvent: null,
@@ -31,7 +32,6 @@ export default class PianoRoll extends React.Component {
     for (let key in this.eventListeners) {
       window.addEventListener(key, this.eventListeners[key], {passive: false});
     }
-    //this.svg.current.addEventListener('touchmove', touchEventWrap(this.onMouseMove).bind(this), {passive: false});
   }
 
   componentWillUnmount() {
