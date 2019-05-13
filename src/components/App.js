@@ -10,8 +10,10 @@ export default class App extends React.Component {
   render() {
     return (
       <div>
-        <button onClick={this.props.play}>play</button>
-        <button onClick={this.props.stop}>stop</button>
+        <div>
+          <button onClick={this.props.play}>play</button>
+          <button onClick={this.props.stop}>stop</button>
+        </div>
         <PianoRoll width="600" height="400"/>
       </div>
     );

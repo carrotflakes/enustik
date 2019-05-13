@@ -67,7 +67,7 @@ export default class PianoRoll extends React.Component {
         return false;
       }
       case 'move': {
-        const {notenum, tick} = this.notePosition({x, y});
+        const {baseX, notenum, tick} = this.notePosition({x, y});
         const [event] = this.props.events.filter(
           event => event.notenum === notenum &&
                  event.start <= tick &&
@@ -75,7 +75,9 @@ export default class PianoRoll extends React.Component {
         if (event) {
           this.setState({
             mode: 'moving',
-            movingEvent: {...event}
+            movingEvent: {...event},
+            moveOffsetX: baseX - event.start / resolution * this.state.widthScale,
+            moveOffsetY: 0
           });
         }
         return false;
@@ -117,11 +119,15 @@ export default class PianoRoll extends React.Component {
         return false;
       }
       case 'moving': {
-        const {notenum, tick} = this.notePosition(getPosition(e, this.svg.current));
+        const {x, y} = getPosition(e, this.svg.current);
+        const {notenum, tick} = this.notePosition({
+          x: x - this.state.moveOffsetX,
+          y: y - this.state.moveOffsetY
+        });
         this.props.moveNote({
           id: this.state.movingEvent.id,
-          notenum,
-          start: tick
+          notenum: clamp(notenum, 0, 127),
+          start: clamp(tick, 0, 10000000 * resolution)
         });
         e.preventDefault();
         return false;
@@ -167,12 +173,14 @@ export default class PianoRoll extends React.Component {
   }
 
   notePosition({x, y}) {
-    x -= this.state.scrollX;
-    y -= this.state.scrollY;
+    x -= this.state.scrollX + 25;
+    y -= this.state.scrollY + 20;
     const {durationUnit: {n, d}} = this.state;
     return {
-      notenum: 128 - (y / this.state.heightScale | 0),
-      tick: ((x - 25) * d / n / this.state.widthScale | 0) * n / d * resolution
+      baseX: x,
+      baseY: y,
+      notenum: 127 - (y / this.state.heightScale | 0),
+      tick: (x * d / n / this.state.widthScale | 0) * n / d * resolution
     };
   }
 
@@ -254,7 +262,6 @@ export default class PianoRoll extends React.Component {
       </svg>
       <rect x="0" y="0" width={width} height={height} fill="none" stroke="gray"/>
       </svg>
-      {this.props.events.map(x=><div key={x.id}>{JSON.stringify(x)}</div>)}
       </div>
     );
   }
