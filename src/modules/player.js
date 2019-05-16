@@ -46,8 +46,9 @@ export function reducer(state=initialState, action) {
 export function* handlePlay(action) {
   const devices = yield call(getDevices);
   const device = devices[0];
-  const startTime = Date.now();
+  const startTime = Date.now() + 100;
   let time = 0;
+  const playingNotes = [];
   while (true) {
     const {events} = yield select(state=>state.events);
     const time_ = (Date.now() - startTime) / 1000 / 60 * bpm * resolution;
@@ -56,9 +57,11 @@ export function* handlePlay(action) {
       const end = start + duration;
       if (time <= start && start < time_) {
         device.send([0x90, event.notenum, 100]);
+        playingNotes.push(event.notenum);
       }
       if (time <= end && end < time_) {
         device.send([0x80, event.notenum, 100]);
+        playingNotes.splice(playingNotes.indexOf(event.notenum), 1);
       }
     }
     time = time_;
@@ -67,6 +70,9 @@ export function* handlePlay(action) {
     if (!playing) {
       break;
     }
+  }
+  for (const note of playingNotes) {
+    device.send([0x80, note, 100]);
   }
 }
 
