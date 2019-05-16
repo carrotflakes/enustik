@@ -9,7 +9,7 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <div>
+      <div styleName="app">
         <div>
           <button onClick={this.props.play}>play</button>
           <button onClick={this.props.stop}>stop</button>

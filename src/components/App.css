@@ -5,11 +5,18 @@ html, body {
   height: 100%;
 }
 
-.tools > div {
-  display: inline-block;
-  cursor: pointer;
-  padding: 2px;
-  margin: 2px;
-  border: solid 1px #999;
-  border-radius: 3px;
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.app > *:nth-child(1) {
+  flex: 0 0 auto;
+}
+
+.app > *:nth-child(2) {
+  flex: 1 0 20px;
+  overflow: hidden;
 }

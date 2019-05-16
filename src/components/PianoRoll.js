@@ -7,6 +7,8 @@ export default class PianoRoll extends React.Component {
     super(props);
     const heightScale = 6 * 3;
     this.state = {
+      width: 600,
+      height: 400,
       widthScale: 24 * 3,
       heightScale,
       scrollX: 0,
@@ -17,6 +19,7 @@ export default class PianoRoll extends React.Component {
       tool: 'note',
       durationUnit: {n: 1, d: 4}
     };
+    this.root = React.createRef();
     this.svg = React.createRef();
   }
 
@@ -28,10 +31,18 @@ export default class PianoRoll extends React.Component {
       touchend: touchEventWrap(this.onMouseUp).bind(this),
       touchmove: touchEventWrap(this.onMouseMove).bind(this),
       touchcancel: touchEventWrap(this.onMouseUp).bind(this),
+      resize: e => {
+        this.setState({
+          width: this.root.current.clientWidth,
+          height: this.root.current.clientHeight
+        })
+      }
     };
     for (let key in this.eventListeners) {
       window.addEventListener(key, this.eventListeners[key], {passive: false});
     }
+
+    this.eventListeners.resize();
   }
 
   componentWillUnmount() {
@@ -39,13 +50,6 @@ export default class PianoRoll extends React.Component {
     for (let key in this.eventListeners) {
       window.removeEventListener(key, this.eventListeners[key]);
     }
-  }
-
-  onChange(e) {
-    this.setState({
-      ...this.state,
-      message: e.target.value
-    });
   }
 
   onMouseDown(e) {
@@ -195,7 +199,7 @@ export default class PianoRoll extends React.Component {
     }
     const notes = this.props.events.map(note);
     this.state.event && notes.push(note(this.state.event));
-    const {width, height} = this.props;
+    const {width, height} = this.state;
     const piano = Array(128).fill(0).map(
       (x, i) => <rect x="0" y={this.state.heightScale * (127 - i)}
                       width="24"
@@ -227,7 +231,7 @@ export default class PianoRoll extends React.Component {
                       key={i}/>);
 
     return (
-      <div>
+      <div ref={this.root}>
       <div styleName="tools">
       <div onClick={() => this.setState({tool: 'note'})}
            styleName={this.state.tool === 'note' ? 'active' : ''}>note</div>
