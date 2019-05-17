@@ -140,9 +140,9 @@ export default class PianoRoll extends React.Component {
         const {x, y} = getPosition(e, this.svg.current);
         const {scrollX, scrollY, scroll} = this.state;
         const newScrollX = -clamp(-(scrollX + x - scroll.x), 0,
-                                  this.state.widthScale * 100 - (this.props.width-25));
+                                  this.state.widthScale * 100 - (this.state.width-25));
         const newScrollY = -clamp(-(scrollY + y - scroll.y), 0,
-                                  this.state.heightScale * 128 - (this.props.height-20));
+                                  this.state.heightScale * 128 - (this.state.height-20));
         this.setState({
           scrollX: newScrollX,
           scrollY: newScrollY,
