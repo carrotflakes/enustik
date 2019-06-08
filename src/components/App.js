@@ -7,6 +7,31 @@ export default class App extends React.Component {
     super(props);
   }
 
+  componentDidMount() {
+    this.eventListeners = {
+      keydown: e => {
+        if (e.code === 'KeyZ' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+          this.props.undo();
+          e.stopPropagation();
+        }
+        if (e.code === 'KeyZ' && e.ctrlKey && e.shiftKey && !e.altKey) {
+          this.props.redo();
+          e.stopPropagation();
+        }
+      }
+    };
+    for (let key in this.eventListeners) {
+      window.addEventListener(key, this.eventListeners[key], {passive: false});
+    }
+  }
+
+  componentWillUnmount() {
+    for (let key in this.eventListeners) {
+      window.removeEventListener(key, this.eventListeners[key]);
+    }
+  }
+
+
   render() {
     return (
       <div styleName="app">
