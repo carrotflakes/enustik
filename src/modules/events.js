@@ -1,4 +1,5 @@
 import { resolution } from '../consts';
+import { undoable } from './history';
 
 const ADD_NOTE = 'enustik/events/ADD_NOTE';
 const REMOVE_EVENT = 'enustik/events/REMOVE_EVENT';
@@ -7,21 +8,24 @@ const MOVE_NOTE = 'enustik/events/MOVE_NOTE';
 export function addNote(note) {
   return {
     type: ADD_NOTE,
-    note
+    note,
+    UNDOABLE: true
   };
 }
 
 export function removeEvent(eventId) {
   return {
     type: REMOVE_EVENT,
-    eventId
+    eventId,
+    UNDOABLE: true
   };
 }
 
 export function moveNote(note) {
   return {
     type: MOVE_NOTE,
-    note
+    note,
+    UNDOABLE: true
   };
 }
 
@@ -30,7 +34,7 @@ const initialState = {
   eventId: 1,
 };
 
-export function reducer(state=initialState, action) {
+export const reducer = undoable((state=initialState, action) => {
   return ({
     [ADD_NOTE]({note}) {
       const event = {
@@ -66,7 +70,7 @@ export function reducer(state=initialState, action) {
       };
     },
   }[action.type] || (()=>state))(action);
-}
+});
 
 export function* rootSaga() {
 }
