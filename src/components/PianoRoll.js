@@ -128,10 +128,12 @@ export default class PianoRoll extends React.Component {
           x: x - this.state.moveOffsetX,
           y: y - this.state.moveOffsetY
         });
-        this.props.moveNote({
-          id: this.state.movingEvent.id,
-          notenum: clamp(notenum, 0, 127),
-          start: clamp(tick, 0, 10000000 * resolution)
+        this.setState({
+          movingEvent: {
+            ...this.state.movingEvent,
+            notenum: clamp(notenum, 0, 127),
+            start: clamp(tick, 0, 10000000 * resolution)
+          }
         });
         e.preventDefault();
         return false;
@@ -166,6 +168,12 @@ export default class PianoRoll extends React.Component {
         return false;
       }
       case 'moving':
+        this.props.moveNote(this.state.movingEvent);
+        this.setState({
+          mode: null,
+          movingEvent: null
+        });
+        return false;
       case 'scrolling': {
         this.setState({
           mode: null,
@@ -197,7 +205,9 @@ export default class PianoRoll extends React.Component {
                    key={event.id}
                    fill="#F66"/>;
     }
-    const notes = this.props.events.map(note);
+    const notes = this.props.events.map(event =>
+      note(this.state.movingEvent && event.id === this.state.movingEvent.id ?
+           this.state.movingEvent : event));
     this.state.event && notes.push(note(this.state.event));
     const {width, height} = this.state;
     const piano = Array(128).fill(0).map(
