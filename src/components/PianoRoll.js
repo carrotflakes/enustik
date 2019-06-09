@@ -1,5 +1,6 @@
 import React from 'react';
 import './PianoRoll.css';
+import Selector from './Selector';
 import { resolution } from '../consts';
 
 export default class PianoRoll extends React.Component {
@@ -17,7 +18,8 @@ export default class PianoRoll extends React.Component {
       event: null,
       movingEvent: null,
       tool: 'note',
-      durationUnit: {n: 1, d: 4}
+      durationUnit: {n: 1, d: 4},
+      currentChannel: 0
     };
     this.root = React.createRef();
     this.svg = React.createRef();
@@ -62,7 +64,7 @@ export default class PianoRoll extends React.Component {
           mode: 'putting',
           event: {
             id: -1,
-            channel: 0,
+            channel: this.state.currentChannel,
             notenum,
             start: tick,
             duration: resolution * n / d
@@ -203,7 +205,7 @@ export default class PianoRoll extends React.Component {
                    width={event.duration * this.state.widthScale / resolution - 1}
                    height={this.state.heightScale - 1}
                    key={event.id}
-                   fill="#F66"/>;
+                   fill={`hsl(${event.channel * 360 / 16}, 80%, 70%)`}/>;
     }
     const notes = this.props.events.map(event =>
       note(this.state.movingEvent && event.id === this.state.movingEvent.id ?
@@ -251,6 +253,8 @@ export default class PianoRoll extends React.Component {
            styleName={this.state.tool === 'remove' ? 'active' : ''}>remove</div>
       <div onClick={() => this.setState({tool: 'scroll'})}
            styleName={this.state.tool === 'scroll' ? 'active': ''}>scroll</div>
+      <Selector items={Array(16).fill(0).map((x, i) => ({text: `ch ${i}`, value: i}))}
+      onSelect={item => this.setState({currentChannel: item.value})}/>
       </div>
       <svg viewBox={[0, 0, width, height].join(' ')} width={width} height={height}
            onMouseDown={this.onMouseDown.bind(this)}

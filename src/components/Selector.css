@@ -1,0 +1,29 @@
+.selector {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 2px;
+  margin: 2px;
+  border: solid 1px #999;
+  border-radius: 3px;
+  color: #999;
+  position: relative;
+}
+
+.selector + .active {
+  border: solid 1px orange;
+  color: orange;
+}
+
+.list {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 2px;
+  margin: 2px;
+  border: solid 1px #999;
+  border-radius: 3px;
+  color: #999;
+  background: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+}

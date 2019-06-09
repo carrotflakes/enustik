@@ -53,14 +53,21 @@ export function* handlePlay(action) {
     const {events} = yield select(state=>state.events);
     const time_ = (Date.now() - startTime) / 1000 / 60 * bpm * resolution;
     for (const event of events) {
-      const {start, duration} = event;
+      const {start, duration, channel} = event;
+
+      // validate channel
+      if (!(typeof channel === 'number' && 0 <= channel && channel < 16)) {
+        console.warn(`invalid channel: ${event}`);
+        break;
+      }
+
       const end = start + duration;
       if (time <= start && start < time_) {
-        device.send([0x90, event.notenum, 100]);
+        device.send([0x90 + channel, event.notenum, 100]);
         playingNotes.push(event.notenum);
       }
       if (time <= end && end < time_) {
-        device.send([0x80, event.notenum, 100]);
+        device.send([0x80 + channel, event.notenum, 100]);
         playingNotes.splice(playingNotes.indexOf(event.notenum), 1);
       }
     }
