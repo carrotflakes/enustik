@@ -19,7 +19,9 @@ export default class PianoRoll extends React.Component {
       movingEvent: null,
       tool: 'note',
       durationUnit: {n: 1, d: 4},
-      currentChannel: 0
+      currentChannel: 0,
+      rectangle: null,
+      selectedNotes: [],
     };
     this.root = React.createRef();
     this.svg = React.createRef();
@@ -106,6 +108,21 @@ export default class PianoRoll extends React.Component {
         });
         return false;
       }
+      case 'select': {
+        this.setState({
+          mode: 'selecting',
+          rectangle: {
+            start: this.notePosition({x, y}),
+            end: this.notePosition({x, y}),
+            top() {return Math.min(this.start.baseY, this.end.baseY);},
+            left() {return Math.min(this.start.baseX, this.end.baseX);},
+            width() {return Math.abs(this.start.baseX - this.end.baseX);},
+            height() {return Math.abs(this.start.baseY - this.end.baseY);},
+          },
+          selectedNotes: [],
+        });
+        return false;
+      }
     }
   }
 
@@ -155,6 +172,24 @@ export default class PianoRoll extends React.Component {
         e.preventDefault();
         return false;
       }
+      case 'selecting': {
+        const rectangle = {
+          ...this.state.rectangle,
+          end: this.notePosition(getPosition(e, this.svg.current))
+        };
+        const minNotenum = Math.min(rectangle.start.notenum, rectangle.end.notenum);
+        const maxNotenum = Math.max(rectangle.start.notenum, rectangle.end.notenum);
+        const start = Math.min(rectangle.start.tick, rectangle.end.tick);
+        const end = Math.max(rectangle.start.tick, rectangle.end.tick);
+        this.setState({
+          rectangle,
+          selectedNotes: this.props.events.filter(event =>
+            start <= event.start + event.duration && event.start <= end &&
+            minNotenum <= event.notenum && event.notenum <= maxNotenum)
+        });
+        e.preventDefault();
+        return false;
+      }
     }
   }
 
@@ -183,6 +218,13 @@ export default class PianoRoll extends React.Component {
         });
         return false;
       }
+      case 'selecting': {
+        this.setState({
+          mode: null,
+          rectangle: null
+        });
+        return false;
+      }
     }
   }
 
@@ -199,13 +241,15 @@ export default class PianoRoll extends React.Component {
   }
 
   render() {
+    const selected = event => this.state.selectedNotes.find(n => n.id === event.id);
     const note = event => {
       return <rect x={event.start * this.state.widthScale / resolution}
                    y={(127 - event.notenum) * this.state.heightScale}
                    width={event.duration * this.state.widthScale / resolution - 1}
                    height={this.state.heightScale - 1}
                    key={event.id}
-                   fill={`hsl(${event.channel * 360 / 16}, 80%, 70%)`}/>;
+                   fill={`hsl(${event.channel * 360 / 16}, 80%, 70%)`}
+                   stroke={selected(event) ? 'black': 'none'}/>;
     }
     const notes = this.props.events.map(event =>
       note(this.state.movingEvent && event.id === this.state.movingEvent.id ?
@@ -245,14 +289,11 @@ export default class PianoRoll extends React.Component {
     return (
       <div ref={this.root}>
       <div styleName="tools">
-      <div onClick={() => this.setState({tool: 'note'})}
-           styleName={this.state.tool === 'note' ? 'active' : ''}>note</div>
-      <div onClick={() => this.setState({tool: 'move'})}
-           styleName={this.state.tool === 'move' ? 'active' : ''}>move</div>
-      <div onClick={() => this.setState({tool: 'remove'})}
-           styleName={this.state.tool === 'remove' ? 'active' : ''}>remove</div>
-      <div onClick={() => this.setState({tool: 'scroll'})}
-           styleName={this.state.tool === 'scroll' ? 'active': ''}>scroll</div>
+      {
+        'note move remove scroll select'.split(' ').map(x => (
+          <div onClick={() => this.setState({tool: x})} key={`tool/${x}`}
+          styleName={this.state.tool === x ? 'active' : ''}>{x}</div>))
+      }
       <Selector items={Array(16).fill(0).map((x, i) => ({text: `ch ${i}`, value: i}))}
       onSelect={item => this.setState({currentChannel: item.value})}/>
       </div>
@@ -277,6 +318,12 @@ export default class PianoRoll extends React.Component {
       {vLines}
       {hLines}
       {notes}
+      {
+        this.state.rectangle &&
+        <rect x={this.state.rectangle.left()} y={this.state.rectangle.top()}
+        width={this.state.rectangle.width()} height={this.state.rectangle.height()}
+        fill="none" stroke="orange"/>
+      }
       </svg>
       <rect x="0" y="0" width={width} height={height} fill="none" stroke="gray"/>
       </svg>
