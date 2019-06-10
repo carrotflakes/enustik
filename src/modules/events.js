@@ -4,6 +4,7 @@ import { undoable } from './history';
 const ADD_NOTE = 'enustik/events/ADD_NOTE';
 const REMOVE_EVENT = 'enustik/events/REMOVE_EVENT';
 const MOVE_NOTE = 'enustik/events/MOVE_NOTE';
+const RESTORE = 'enustik/events/RESTORE';
 
 export function addNote(note) {
   return {
@@ -26,6 +27,14 @@ export function moveNote(note) {
     type: MOVE_NOTE,
     note,
     UNDOABLE: true
+  };
+}
+
+export function restore(events) {
+  return {
+    type: RESTORE,
+    events,
+    UNDOABLE: true // ?
   };
 }
 
@@ -67,6 +76,18 @@ export const reducer = undoable((state=initialState, action) => {
       return {
         ...state,
         events
+      };
+    },
+    [RESTORE]({events}) {
+      let eventId = 0;
+      for (const e of events)
+        if (eventId < e.id)
+          eventId = e.id;
+      eventId += 1;
+      return {
+        ...state,
+        events,
+        eventId
       };
     },
   }[action.type] || (()=>state))(action);
