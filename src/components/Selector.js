@@ -19,10 +19,10 @@ export default class Selector extends React.Component {
     ));
     return (
       <div styleName="selector" onClick={() => this.setState({show: !this.state.show})}>
-      {this.state.current.text}&nbsp;▼
-      <div styleName="list" style={{display: this.state.show ? 'inline-block' : 'none'}}>
-      {items}
-      </div>
+        {this.state.current.text}&nbsp;▼
+        <div styleName="list" style={{display: this.state.show ? 'inline-block' : 'none'}}>
+          {items}
+        </div>
       </div>
     );
   }

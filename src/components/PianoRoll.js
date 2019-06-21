@@ -288,45 +288,45 @@ export default class PianoRoll extends React.Component {
 
     return (
       <div ref={this.root}>
-      <div styleName="tools">
-      {
-        'note move remove scroll select'.split(' ').map(x => (
-          <div onClick={() => this.setState({tool: x})} key={`tool/${x}`}
-          styleName={this.state.tool === x ? 'active' : ''}>{x}</div>))
-      }
-      <Selector items={Array(16).fill(0).map((x, i) => ({text: `ch ${i}`, value: i}))}
-      onSelect={item => this.setState({currentChannel: item.value})}/>
-      </div>
-      <svg viewBox={[0, 0, width, height].join(' ')} width={width} height={height}
-           onMouseDown={this.onMouseDown.bind(this)}
-           onTouchStart={touchEventWrap(this.onMouseDown).bind(this)}
-           ref={this.svg}>
-      <svg viewBox={[0, -this.state.scrollY, 24, height-20].join(' ')}
-           x="0" y="20"
-           width={24} height={height-20}>
-      {piano}
-      {pianoMarks}
-      </svg>
-      <svg viewBox={[-this.state.scrollX, 0, width-25, 20].join(' ')}
-           x="25" y="0"
-           width={width-25} height={20}>
-      {tickMarks}
-      </svg>
-      <svg viewBox={[-this.state.scrollX, -this.state.scrollY, width-25, height-20].join(' ')}
-           x="25" y="20"
-           width={width-25} height={height-20}>
-      {vLines}
-      {hLines}
-      {notes}
-      {
-        this.state.rectangle &&
-        <rect x={this.state.rectangle.left()} y={this.state.rectangle.top()}
-        width={this.state.rectangle.width()} height={this.state.rectangle.height()}
-        fill="none" stroke="orange"/>
-      }
-      </svg>
-      <rect x="0" y="0" width={width} height={height} fill="none" stroke="gray"/>
-      </svg>
+        <div styleName="tools">
+          {
+            'note move remove scroll select'.split(' ').map(x => (
+              <div onClick={() => this.setState({tool: x})} key={`tool/${x}`}
+                   styleName={this.state.tool === x ? 'active' : ''}>{x}</div>))
+          }
+          <Selector items={Array(16).fill(0).map((x, i) => ({text: `ch ${i}`, value: i}))}
+                    onSelect={item => this.setState({currentChannel: item.value})}/>
+        </div>
+        <svg viewBox={[0, 0, width, height].join(' ')} width={width} height={height}
+             onMouseDown={this.onMouseDown.bind(this)}
+             onTouchStart={touchEventWrap(this.onMouseDown).bind(this)}
+             ref={this.svg}>
+          <svg viewBox={[0, -this.state.scrollY, 24, height-20].join(' ')}
+               x="0" y="20"
+               width={24} height={height-20}>
+            {piano}
+            {pianoMarks}
+          </svg>
+          <svg viewBox={[-this.state.scrollX, 0, width-25, 20].join(' ')}
+               x="25" y="0"
+               width={width-25} height={20}>
+            {tickMarks}
+          </svg>
+          <svg viewBox={[-this.state.scrollX, -this.state.scrollY, width-25, height-20].join(' ')}
+               x="25" y="20"
+               width={width-25} height={height-20}>
+            {vLines}
+            {hLines}
+            {notes}
+            {
+              this.state.rectangle &&
+                <rect x={this.state.rectangle.left()} y={this.state.rectangle.top()}
+                      width={this.state.rectangle.width()} height={this.state.rectangle.height()}
+                      fill="none" stroke="orange"/>
+            }
+          </svg>
+          <rect x="0" y="0" width={width} height={height} fill="none" stroke="gray"/>
+        </svg>
       </div>
     );
   }
