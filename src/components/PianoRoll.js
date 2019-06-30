@@ -179,8 +179,8 @@ export default class PianoRoll extends React.Component {
         };
         const minNotenum = Math.min(rectangle.start.notenum, rectangle.end.notenum);
         const maxNotenum = Math.max(rectangle.start.notenum, rectangle.end.notenum);
-        const start = Math.min(rectangle.start.tick, rectangle.end.tick);
-        const end = Math.max(rectangle.start.tick, rectangle.end.tick);
+        const start = Math.min(rectangle.start.rawTick, rectangle.end.rawTick);
+        const end = Math.max(rectangle.start.rawTick, rectangle.end.rawTick);
         this.setState({
           rectangle,
           selectedNotes: this.props.events.filter(event =>
@@ -236,7 +236,8 @@ export default class PianoRoll extends React.Component {
       baseX: x,
       baseY: y,
       notenum: 127 - (y / this.state.heightScale | 0),
-      tick: (x * d / n / this.state.widthScale | 0) * n / d * resolution
+      tick: (x * d / n / this.state.widthScale | 0) * n / d * resolution,
+      rawTick: x * resolution / this.state.widthScale | 0
     };
   }
 
