@@ -286,6 +286,14 @@ export default class PianoRoll extends React.Component {
                       stroke={i % 4 ? '#DDD' : '#AAA'}
                       key={i}/>);
 
+    const durationUnits = [
+      {text: '1/16 beat', value: {n: 1, d: 16}},
+      {text: '1/8 beat', value: {n: 1, d: 8}},
+      {text: '1/4 beat', value: {n: 1, d: 4}, current: true},
+      {text: '1/2 beat', value: {n: 1, d: 2}},
+      {text: '1/1 beat', value: {n: 1, d: 1}},
+    ];
+
     return (
       <div ref={this.root}>
         <div styleName="tools">
@@ -296,6 +304,8 @@ export default class PianoRoll extends React.Component {
           }
           <Selector items={Array(16).fill(0).map((x, i) => ({text: `ch ${i}`, value: i}))}
                     onSelect={item => this.setState({currentChannel: item.value})}/>
+          <Selector items={durationUnits}
+                    onSelect={item => this.setState({durationUnit: item.value})}/>
         </div>
         <svg viewBox={[0, 0, width, height].join(' ')} width={width} height={height}
              onMouseDown={this.onMouseDown.bind(this)}

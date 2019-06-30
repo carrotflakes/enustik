@@ -5,7 +5,7 @@ export default class Selector extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      current: this.props.items[0],
+      current: this.props.items.find(item => item.current) || this.props.items[0],
       show: false
     };
   }
