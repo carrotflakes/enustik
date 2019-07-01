@@ -70,6 +70,29 @@ export default class PianoRoll extends React.Component {
             notenum,
             start: tick,
             duration: resolution * n / d
+          },
+          mouseMove: e => {
+            const {notenum, tick} = this.notePosition(getPosition(e, this.svg.current));
+            const {durationUnit: {n, d}} = this.state;
+            const event = this.state.event;
+            this.setState({
+              event: {
+                  ...event,
+                duration: Math.max(resolution * n / d, tick - event.start + resolution * n / d)
+              }
+            });
+            e.preventDefault();
+            return false;
+          },
+          mouseUp: e => {
+            this.props.addNote(this.state.event);
+            this.setState({
+              mode: null,
+              event: null,
+              mouseMove: null,
+              mouseUp: null
+            });
+            return false;
           }
         });
         return false;
@@ -85,7 +108,33 @@ export default class PianoRoll extends React.Component {
             mode: 'moving',
             movingEvent: {...event},
             moveOffsetX: baseX - event.start / resolution * this.state.widthScale,
-            moveOffsetY: 0
+            moveOffsetY: 0,
+            mouseMove: e => {
+              const {x, y} = getPosition(e, this.svg.current);
+              const {notenum, tick} = this.notePosition({
+                x: x - this.state.moveOffsetX,
+                y: y - this.state.moveOffsetY
+              });
+              this.setState({
+                movingEvent: {
+                    ...this.state.movingEvent,
+                  notenum: clamp(notenum, 0, 127),
+                  start: clamp(tick, 0, 10000000 * resolution)
+                }
+              });
+              e.preventDefault();
+              return false;
+            },
+            mouseUp: e => {
+              this.props.moveNote(this.state.movingEvent);
+              this.setState({
+                mode: null,
+                movingEvent: null,
+                mouseMove: null,
+                mouseUp: null
+              });
+              return false;
+            }
           });
         }
         return false;
@@ -104,7 +153,31 @@ export default class PianoRoll extends React.Component {
       case 'scroll': {
         this.setState({
           mode: 'scrolling',
-          scroll: {x, y}
+          scroll: {x, y},
+          mouseMove: e => {
+            const {x, y} = getPosition(e, this.svg.current);
+            const {scrollX, scrollY, scroll} = this.state;
+            const newScrollX = -clamp(-(scrollX + x - scroll.x), 0,
+                                      this.state.widthScale * 100 - (this.state.width-25));
+            const newScrollY = -clamp(-(scrollY + y - scroll.y), 0,
+                                      this.state.heightScale * 128 - (this.state.height-20));
+            this.setState({
+              scrollX: newScrollX,
+              scrollY: newScrollY,
+              scroll: {x: scroll.x + newScrollX - scrollX, y: scroll.y + newScrollY - scrollY}
+            });
+            e.preventDefault();
+            return false;
+          },
+          mouseUp: e => {
+            this.setState({
+              mode: null,
+              scroll: null,
+              mouseMove: null,
+              mouseUp: null
+            });
+            return false;
+          }
         });
         return false;
       }
@@ -120,6 +193,34 @@ export default class PianoRoll extends React.Component {
             height() {return Math.abs(this.start.baseY - this.end.baseY);},
           },
           selectedNotes: [],
+          mouseMove: e => {
+            const rectangle = {
+                ...this.state.rectangle,
+              end: this.notePosition(getPosition(e, this.svg.current))
+            };
+            const minNotenum = Math.min(rectangle.start.notenum, rectangle.end.notenum);
+            const maxNotenum = Math.max(rectangle.start.notenum, rectangle.end.notenum);
+            const start = Math.min(rectangle.start.rawTick, rectangle.end.rawTick);
+            const end = Math.max(rectangle.start.rawTick, rectangle.end.rawTick);
+            this.setState({
+              rectangle,
+              selectedNotes: this.props.events.filter(event => {
+                return start <= event.start + event.duration && event.start <= end &&
+                  minNotenum <= event.notenum && event.notenum <= maxNotenum;
+              })
+            });
+            e.preventDefault();
+            return false;
+          },
+          mouseUp: e => {
+            this.setState({
+              mode: null,
+              rectangle: null,
+              mouseMove: null,
+              mouseUp: null
+            });
+            return false;
+          }
         });
         return false;
       }
@@ -127,105 +228,13 @@ export default class PianoRoll extends React.Component {
   }
 
   onMouseMove(e) {
-    switch (this.state.mode) {
-      case 'putting': {
-        const {notenum, tick} = this.notePosition(getPosition(e, this.svg.current));
-        const {durationUnit: {n, d}} = this.state;
-        const event = this.state.event;
-        this.setState({
-          event: {
-            ...event,
-            duration: Math.max(resolution * n / d, tick - event.start + resolution * n / d)
-          }
-        });
-        e.preventDefault();
-        return false;
-      }
-      case 'moving': {
-        const {x, y} = getPosition(e, this.svg.current);
-        const {notenum, tick} = this.notePosition({
-          x: x - this.state.moveOffsetX,
-          y: y - this.state.moveOffsetY
-        });
-        this.setState({
-          movingEvent: {
-            ...this.state.movingEvent,
-            notenum: clamp(notenum, 0, 127),
-            start: clamp(tick, 0, 10000000 * resolution)
-          }
-        });
-        e.preventDefault();
-        return false;
-      }
-      case 'scrolling': {
-        const {x, y} = getPosition(e, this.svg.current);
-        const {scrollX, scrollY, scroll} = this.state;
-        const newScrollX = -clamp(-(scrollX + x - scroll.x), 0,
-                                  this.state.widthScale * 100 - (this.state.width-25));
-        const newScrollY = -clamp(-(scrollY + y - scroll.y), 0,
-                                  this.state.heightScale * 128 - (this.state.height-20));
-        this.setState({
-          scrollX: newScrollX,
-          scrollY: newScrollY,
-          scroll: {x: scroll.x + newScrollX - scrollX, y: scroll.y + newScrollY - scrollY}
-        });
-        e.preventDefault();
-        return false;
-      }
-      case 'selecting': {
-        const rectangle = {
-          ...this.state.rectangle,
-          end: this.notePosition(getPosition(e, this.svg.current))
-        };
-        const minNotenum = Math.min(rectangle.start.notenum, rectangle.end.notenum);
-        const maxNotenum = Math.max(rectangle.start.notenum, rectangle.end.notenum);
-        const start = Math.min(rectangle.start.rawTick, rectangle.end.rawTick);
-        const end = Math.max(rectangle.start.rawTick, rectangle.end.rawTick);
-        this.setState({
-          rectangle,
-          selectedNotes: this.props.events.filter(event =>
-            start <= event.start + event.duration && event.start <= end &&
-            minNotenum <= event.notenum && event.notenum <= maxNotenum)
-        });
-        e.preventDefault();
-        return false;
-      }
-    }
+    if (this.state.mouseMove)
+      return this.state.mouseMove(e);
   }
 
   onMouseUp(e) {
-    const {x, y} = getPosition(e, this.svg.current);
-    switch (this.state.mode) {
-      case 'putting': {
-        this.props.addNote(this.state.event);
-        this.setState({
-          mode: null,
-          event: null
-        });
-        return false;
-      }
-      case 'moving':
-        this.props.moveNote(this.state.movingEvent);
-        this.setState({
-          mode: null,
-          movingEvent: null
-        });
-        return false;
-      case 'scrolling': {
-        this.setState({
-          mode: null,
-          scroll: null
-        });
-        return false;
-      }
-      case 'selecting': {
-        this.setState({
-          mode: null,
-          rectangle: null
-        });
-        return false;
-      }
-    }
+    if (this.state.mouseUp)
+      return this.state.mouseUp(e);
   }
 
   notePosition({x, y}) {
@@ -244,13 +253,14 @@ export default class PianoRoll extends React.Component {
   render() {
     const selected = event => this.state.selectedNotes.find(n => n.id === event.id);
     const note = event => {
+      const hue = event.channel * 360 / 16;
       return <rect x={event.start * this.state.widthScale / resolution}
                    y={(127 - event.notenum) * this.state.heightScale}
                    width={event.duration * this.state.widthScale / resolution - 1}
                    height={this.state.heightScale - 1}
                    key={event.id}
-                   fill={`hsl(${event.channel * 360 / 16}, 80%, 70%)`}
-                   stroke={selected(event) ? 'black': 'none'}/>;
+                   fill={`hsl(${hue}, 80%, 70%)`}
+                   stroke={selected(event) ? `#222`: `hsl(${hue}, 60%, 60%)`}/>;
     }
     const notes = this.props.events.map(event =>
       note(this.state.movingEvent && event.id === this.state.movingEvent.id ?
