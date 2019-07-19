@@ -166,7 +166,7 @@ export default class PianoRoll extends React.Component {
                  event.start <= rawTick &&
                  rawTick <= event.start + event.duration);
         if (event) {
-          this.props.removeEvent(event.id);
+          this.props.removeEvents([event.id]);
         }
         return false;
       }
@@ -267,7 +267,7 @@ export default class PianoRoll extends React.Component {
   cutEvents() {
     if (this.state.selectedNotes.length > 0) {
       this.setState({clippedEvents: this.state.selectedNotes});
-      // TODO
+      this.props.removeEvents(this.state.selectedNotes.map(n => n.id));
     }
   }
 

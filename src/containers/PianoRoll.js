@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import { addNote, removeEvent, moveEvents, addEvents } from '../modules/events';
+import { addNote, removeEvents, moveEvents, addEvents } from '../modules/events';
 
 import PianoRoll from '../components/PianoRoll';
 
@@ -9,7 +9,7 @@ export default connect(
   }),
   {
     addNote,
-    removeEvent,
+    removeEvents,
     moveEvents,
     addEvents,
   })(PianoRoll);

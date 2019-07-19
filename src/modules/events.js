@@ -2,7 +2,7 @@ import { resolution } from '../consts';
 import { undoable } from './history';
 
 const ADD_NOTE = 'enustik/events/ADD_NOTE';
-const REMOVE_EVENT = 'enustik/events/REMOVE_EVENT';
+const REMOVE_EVENTS = 'enustik/events/REMOVE_EVENTS';
 const MOVE_EVENTS = 'enustik/events/MOVE_EVENTS';
 const ADD_EVENTS = 'enustik/events/ADD_EVENTS';
 const RESTORE = 'enustik/events/RESTORE';
@@ -15,10 +15,10 @@ export function addNote(note) {
   };
 }
 
-export function removeEvent(eventId) {
+export function removeEvents(eventIds) {
   return {
-    type: REMOVE_EVENT,
-    eventId,
+    type: REMOVE_EVENTS,
+    eventIds,
     UNDOABLE: true
   };
 }
@@ -66,11 +66,11 @@ export const reducer = undoable((state=initialState, action) => {
         eventId: state.eventId + 1
       };
     },
-    [REMOVE_EVENT]({eventId}) {
+    [REMOVE_EVENTS]({eventIds}) {
       const {events} = state;
       return {
         ...state,
-        events: events.filter(event => event.id !== eventId)
+        events: events.filter(event => !eventIds.includes(event.id))
       };
     },
     [MOVE_EVENTS]({events}) {
