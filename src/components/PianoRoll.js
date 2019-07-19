@@ -99,11 +99,11 @@ export default class PianoRoll extends React.Component {
         return false;
       }
       case 'move': {
-        const {baseX, notenum, tick} = this.notePosition({x, y});
+        const {baseX, notenum, rawTick} = this.notePosition({x, y});
         const event = this.props.events.find(
           event => event.notenum === notenum &&
-                 event.start <= tick &&
-                 tick <= event.start + event.duration);
+                 event.start <= rawTick &&
+                 rawTick <= event.start + event.duration);
         if (event) {
           this.setState({
             mode: 'moving',
@@ -141,11 +141,11 @@ export default class PianoRoll extends React.Component {
         return false;
       }
       case 'remove': {
-        const {notenum, tick} = this.notePosition({x, y});
+        const {notenum, rawTick} = this.notePosition({x, y});
         const event = this.props.events.find(
           event => event.notenum === notenum &&
-                 event.start <= tick &&
-                 tick <= event.start + event.duration);
+                 event.start <= rawTick &&
+                 rawTick <= event.start + event.duration);
         if (event) {
           this.props.removeEvent(event.id);
         }
@@ -232,11 +232,11 @@ export default class PianoRoll extends React.Component {
     if (this.state.mouseMove)
       return this.state.mouseMove(e);
 
-    const {notenum, tick} = this.notePosition(getPosition(e, this.svg.current));
+    const {notenum, rawTick} = this.notePosition(getPosition(e, this.svg.current));
     const event = this.props.events.find(
       event => event.notenum === notenum &&
-        event.start <= tick &&
-        tick <= event.start + event.duration);
+        event.start <= rawTick &&
+        rawTick <= event.start + event.duration);
     this.setState({cursor: event ? 'pointer' : 'default'});
   }
 
