@@ -22,6 +22,7 @@ export default class PianoRoll extends React.Component {
       currentChannel: 0,
       rectangle: null,
       selectedNotes: [],
+      cursor: 'pointer',
     };
     this.root = React.createRef();
     this.svg = React.createRef();
@@ -99,7 +100,7 @@ export default class PianoRoll extends React.Component {
       }
       case 'move': {
         const {baseX, notenum, tick} = this.notePosition({x, y});
-        const [event] = this.props.events.filter(
+        const event = this.props.events.find(
           event => event.notenum === notenum &&
                  event.start <= tick &&
                  tick <= event.start + event.duration);
@@ -141,7 +142,7 @@ export default class PianoRoll extends React.Component {
       }
       case 'remove': {
         const {notenum, tick} = this.notePosition({x, y});
-        const [event] = this.props.events.filter(
+        const event = this.props.events.find(
           event => event.notenum === notenum &&
                  event.start <= tick &&
                  tick <= event.start + event.duration);
@@ -230,6 +231,13 @@ export default class PianoRoll extends React.Component {
   onMouseMove(e) {
     if (this.state.mouseMove)
       return this.state.mouseMove(e);
+
+    const {notenum, tick} = this.notePosition(getPosition(e, this.svg.current));
+    const event = this.props.events.find(
+      event => event.notenum === notenum &&
+        event.start <= tick &&
+        tick <= event.start + event.duration);
+    this.setState({cursor: event ? 'pointer' : 'default'});
   }
 
   onMouseUp(e) {
@@ -321,6 +329,7 @@ export default class PianoRoll extends React.Component {
         <svg viewBox={[0, 0, width, height].join(' ')} width={width} height={height}
              onMouseDown={this.onMouseDown.bind(this)}
              onTouchStart={touchEventWrap(this.onMouseDown).bind(this)}
+             style={{'cursor': this.state.cursor}}
              ref={this.svg}>
           <svg viewBox={[0, -this.state.scrollY, 24, height-20].join(' ')}
                x="0" y="20"
