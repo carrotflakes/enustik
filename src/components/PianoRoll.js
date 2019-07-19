@@ -40,7 +40,21 @@ export default class PianoRoll extends React.Component {
         this.setState({
           width: this.root.current.clientWidth,
           height: this.root.current.clientHeight
-        })
+        });
+      },
+      keydown: e => {
+        if (e.code === 'KeyX' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+          this.cutEvents();
+          e.stopPropagation();
+        }
+        if (e.code === 'KeyC' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+          this.copyEvents();
+          e.stopPropagation();
+        }
+        if (e.code === 'KeyV' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+          this.pasteEvents();
+          e.stopPropagation();
+        }
       }
     };
     for (let key in this.eventListeners) {
@@ -251,6 +265,25 @@ export default class PianoRoll extends React.Component {
       return this.state.mouseUp(e);
   }
 
+  cutEvents() {
+    if (this.state.selectedNotes.length > 0) {
+      this.setState({clippedEvents: this.state.selectedNotes});
+      // TODO
+    }
+  }
+
+  copyEvents() {
+    if (this.state.selectedNotes.length > 0) {
+      this.setState({clippedEvents: this.state.selectedNotes});
+    }
+  }
+
+  pasteEvents() {
+    if (this.state.clippedEvents && this.state.clippedEvents.length > 0) {
+      this.props.addEvents(this.state.clippedEvents);
+    }
+  }
+
   notePosition({x, y}) {
     x -= this.state.scrollX + 25;
     y -= this.state.scrollY + 20;
@@ -275,7 +308,7 @@ export default class PianoRoll extends React.Component {
                    key={event.id}
                    fill={`hsl(${hue}, 80%, 70%)`}
                    stroke={selected(event) ? `#222`: `hsl(${hue}, 60%, 60%)`}/>;
-    }
+    };
     const notes = this.props.events.map(event =>
       note((this.state.movingEvents || []).find(me => me.id === event.id) || event));
     this.state.event && notes.push(note(this.state.event));
