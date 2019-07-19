@@ -3,7 +3,7 @@ import { undoable } from './history';
 
 const ADD_NOTE = 'enustik/events/ADD_NOTE';
 const REMOVE_EVENT = 'enustik/events/REMOVE_EVENT';
-const MOVE_NOTE = 'enustik/events/MOVE_NOTE';
+const MOVE_EVENTS = 'enustik/events/MOVE_EVENTS';
 const ADD_EVENTS = 'enustik/events/ADD_EVENTS';
 const RESTORE = 'enustik/events/RESTORE';
 
@@ -23,10 +23,10 @@ export function removeEvent(eventId) {
   };
 }
 
-export function moveNote(note) {
+export function moveEvents(events) {
   return {
-    type: MOVE_NOTE,
-    note,
+    type: MOVE_EVENTS,
+    events,
     UNDOABLE: true
   };
 }
@@ -73,18 +73,20 @@ export const reducer = undoable((state=initialState, action) => {
         events: events.filter(event => event.id !== eventId)
       };
     },
-    [MOVE_NOTE]({note: {id: eventId, notenum, start, duration}}) {
-      const events = state.events.map(event => (
-        event.id === eventId ?
-        {
-          ...event,
-          notenum: notenum === undefined ? event.notenum : notenum,
-          start: start === undefined ? event.start : start,
-          duration: duration === undefined ? event.duration : duration
-        } : event));
+    [MOVE_EVENTS]({events}) {
       return {
         ...state,
-        events
+        events: state.events.map(event => {
+          const e = events.find(e => event.id === e.id);
+          if (e)
+            return {
+              ...event,
+              notenum: e.notenum === undefined ? event.notenum : e.notenum,
+              start: e.start === undefined ? event.start : e.start,
+              duration: e.duration === undefined ? event.duration : e.duration
+            };
+          return event;
+        })
       };
     },
     [ADD_EVENTS]({events}) {

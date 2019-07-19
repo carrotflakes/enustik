@@ -146,8 +146,7 @@ export default class PianoRoll extends React.Component {
               return false;
             },
             mouseUp: e => {
-              for (const e of this.state.movingEvents)
-                this.props.moveNote(e);
+              this.props.moveEvents(this.state.movingEvents);
               this.setState({
                 mode: null,
                 movingEvents: null,
