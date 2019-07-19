@@ -16,7 +16,7 @@ export default class PianoRoll extends React.Component {
       scrollY: -heightScale * 12 * 4 + props.height / 2,
       mode: null,
       event: null,
-      movingEvent: null,
+      movingEvents: null,
       tool: 'note',
       durationUnit: {n: 1, d: 4},
       currentChannel: 0,
@@ -105,9 +105,11 @@ export default class PianoRoll extends React.Component {
                  event.start <= rawTick &&
                  rawTick <= event.start + event.duration);
         if (event) {
+          const movingEvents = this.state.selectedNotes.find(n => n.id === event.id) ?
+                this.state.selectedNotes : [{...event}];
           this.setState({
             mode: 'moving',
-            movingEvent: {...event},
+            movingEvents,
             moveOffsetX: baseX - event.start / resolution * this.state.widthScale,
             moveOffsetY: 0,
             mouseMove: e => {
@@ -116,21 +118,25 @@ export default class PianoRoll extends React.Component {
                 x: x - this.state.moveOffsetX,
                 y: y - this.state.moveOffsetY
               });
+              const graspedEvent = this.state.movingEvents.find(e => e.id === event.id);
+              const dNotenum = notenum - graspedEvent.notenum;
+              const dTick = tick - graspedEvent.start;
               this.setState({
-                movingEvent: {
-                    ...this.state.movingEvent,
-                  notenum: clamp(notenum, 0, 127),
-                  start: clamp(tick, 0, 10000000 * resolution)
-                }
+                movingEvents: this.state.movingEvents.map(e => ({
+                  ...e,
+                  notenum: clamp(e.notenum + dNotenum, 0, 127),
+                  start: clamp(e.start + dTick, 0, 10000000 * resolution)
+                }))
               });
               e.preventDefault();
               return false;
             },
             mouseUp: e => {
-              this.props.moveNote(this.state.movingEvent);
+              for (const e of this.state.movingEvents)
+                this.props.moveNote(e);
               this.setState({
                 mode: null,
-                movingEvent: null,
+                movingEvents: null,
                 mouseMove: null,
                 mouseUp: null
               });
@@ -271,8 +277,7 @@ export default class PianoRoll extends React.Component {
                    stroke={selected(event) ? `#222`: `hsl(${hue}, 60%, 60%)`}/>;
     }
     const notes = this.props.events.map(event =>
-      note(this.state.movingEvent && event.id === this.state.movingEvent.id ?
-           this.state.movingEvent : event));
+      note((this.state.movingEvents || []).find(me => me.id === event.id) || event));
     this.state.event && notes.push(note(this.state.event));
     const {width, height} = this.state;
     const piano = Array(128).fill(0).map(
