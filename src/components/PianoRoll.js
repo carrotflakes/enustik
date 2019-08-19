@@ -1,6 +1,7 @@
 import React from 'react';
 import './PianoRoll.css';
 import Selector from './Selector';
+import HScrollBar from './HScrollBar';
 import { resolution } from '../consts';
 
 export default class PianoRoll extends React.Component {
@@ -13,7 +14,7 @@ export default class PianoRoll extends React.Component {
       widthScale: 24 * 3,
       heightScale,
       scrollX: 0,
-      scrollY: -heightScale * 12 * 4 + props.height / 2,
+      scrollY: -heightScale * 12 * 4 + props.height / 2 || 0,
       mode: null,
       event: null,
       movingEvents: null,
@@ -25,7 +26,7 @@ export default class PianoRoll extends React.Component {
       cursor: 'pointer',
     };
     this.root = React.createRef();
-    this.svg = React.createRef();
+    this.main = React.createRef();
   }
 
   componentDidMount() {
@@ -39,7 +40,7 @@ export default class PianoRoll extends React.Component {
       resize: e => {
         this.setState({
           width: this.root.current.clientWidth,
-          height: this.root.current.clientHeight
+          height: this.root.current.clientHeight - 35
         });
       },
       keydown: e => {
@@ -71,8 +72,8 @@ export default class PianoRoll extends React.Component {
     }
   }
 
-  onMouseDown(e) {
-    const {x, y} = getPosition(e, this.svg.current);
+  onMouseDownOnMain(e) {
+    const {x, y} = getPosition(e, this.main.current);
     switch (this.state.tool) {
       case 'note': {
         const {notenum, tick} = this.notePosition({x, y});
@@ -87,7 +88,7 @@ export default class PianoRoll extends React.Component {
             duration: resolution * n / d
           },
           mouseMove: e => {
-            const {notenum, tick} = this.notePosition(getPosition(e, this.svg.current));
+            const {notenum, tick} = this.notePosition(getPosition(e, this.main.current));
             const {durationUnit: {n, d}} = this.state;
             const event = this.state.event;
             this.setState({
@@ -127,7 +128,7 @@ export default class PianoRoll extends React.Component {
             moveOffsetX: baseX - event.start / resolution * this.state.widthScale,
             moveOffsetY: 0,
             mouseMove: e => {
-              const {x, y} = getPosition(e, this.svg.current);
+              const {x, y} = getPosition(e, this.main.current);
               const {notenum, tick} = this.notePosition({
                 x: x - this.state.moveOffsetX,
                 y: y - this.state.moveOffsetY
@@ -170,21 +171,20 @@ export default class PianoRoll extends React.Component {
         }
         return false;
       }
-      case 'scroll': {
+    case 'scroll': {
+      const scroll = {x, y};
         this.setState({
           mode: 'scrolling',
-          scroll: {x, y},
           mouseMove: e => {
-            const {x, y} = getPosition(e, this.svg.current);
-            const {scrollX, scrollY, scroll} = this.state;
-            const newScrollX = -clamp(-(scrollX + x - scroll.x), 0,
+            const {x, y} = getPosition(e, this.main.current);
+            const {scrollX, scrollY} = this.state;
+            const newScrollX = -clamp(-(scrollX + (x - scroll.x)), 0,
                                       this.state.widthScale * 100 - (this.state.width-25));
-            const newScrollY = -clamp(-(scrollY + y - scroll.y), 0,
-                                      this.state.heightScale * 128 - (this.state.height-20));
+            const newScrollY = -clamp(-(scrollY + (y - scroll.y)), 0,
+                                      this.state.heightScale * 128 - (this.state.height-40));
             this.setState({
               scrollX: newScrollX,
-              scrollY: newScrollY,
-              scroll: {x: scroll.x + newScrollX - scrollX, y: scroll.y + newScrollY - scrollY}
+              scrollY: newScrollY
             });
             e.preventDefault();
             return false;
@@ -192,7 +192,6 @@ export default class PianoRoll extends React.Component {
           mouseUp: e => {
             this.setState({
               mode: null,
-              scroll: null,
               mouseMove: null,
               mouseUp: null
             });
@@ -216,7 +215,7 @@ export default class PianoRoll extends React.Component {
           mouseMove: e => {
             const rectangle = {
                 ...this.state.rectangle,
-              end: this.notePosition(getPosition(e, this.svg.current))
+              end: this.notePosition(getPosition(e, this.main.current))
             };
             const minNotenum = Math.min(rectangle.start.notenum, rectangle.end.notenum);
             const maxNotenum = Math.max(rectangle.start.notenum, rectangle.end.notenum);
@@ -251,7 +250,7 @@ export default class PianoRoll extends React.Component {
     if (this.state.mouseMove)
       return this.state.mouseMove(e);
 
-    const {notenum, rawTick} = this.notePosition(getPosition(e, this.svg.current));
+    const {notenum, rawTick} = this.notePosition(getPosition(e, this.main.current));
     const event = this.props.events.find(
       event => event.notenum === notenum &&
         event.start <= rawTick &&
@@ -284,8 +283,6 @@ export default class PianoRoll extends React.Component {
   }
 
   notePosition({x, y}) {
-    x -= this.state.scrollX + 25;
-    y -= this.state.scrollY + 20;
     const {durationUnit: {n, d}} = this.state;
     return {
       baseX: x,
@@ -364,13 +361,10 @@ export default class PianoRoll extends React.Component {
                     onSelect={item => this.setState({durationUnit: item.value})}/>
         </div>
         <svg viewBox={[0, 0, width, height].join(' ')} width={width} height={height}
-             onMouseDown={this.onMouseDown.bind(this)}
-             onTouchStart={touchEventWrap(this.onMouseDown).bind(this)}
-             style={{'cursor': this.state.cursor}}
-             ref={this.svg}>
-          <svg viewBox={[0, -this.state.scrollY, 24, height-20].join(' ')}
+             style={{'cursor': this.state.cursor}}>
+          <svg viewBox={[0, -this.state.scrollY, 24, height-40].join(' ')}
                x="0" y="20"
-               width={24} height={height-20}>
+               width={24} height={height-40}>
             {piano}
             {pianoMarks}
           </svg>
@@ -379,9 +373,13 @@ export default class PianoRoll extends React.Component {
                width={width-25} height={20}>
             {tickMarks}
           </svg>
-          <svg viewBox={[-this.state.scrollX, -this.state.scrollY, width-25, height-20].join(' ')}
+          <svg viewBox={[-this.state.scrollX, -this.state.scrollY, width-25, height-40].join(' ')}
                x="25" y="20"
-               width={width-25} height={height-20}>
+               width={width-25} height={height-40}
+               onMouseDown={this.onMouseDownOnMain.bind(this)}
+               onTouchStart={touchEventWrap(this.onMouseDownOnMain).bind(this)}
+               ref={this.main}>
+            <rect x="0" y="0" width="10000" height="10000" fill="#fff"/>
             {vLines}
             {hLines}
             {notes}
@@ -391,7 +389,14 @@ export default class PianoRoll extends React.Component {
                       width={this.state.rectangle.width()} height={this.state.rectangle.height()}
                       fill="none" stroke="orange"/>
             }
+            <line x1={this.props.tick * this.state.widthScale / resolution} y1={0}
+                  x2={this.props.tick * this.state.widthScale / resolution} y2={10000}
+                  stroke="orange"/>
           </svg>
+          <HScrollBar x={0} y={height-20} width={width} height={20}
+                      scrollMin={0} scrollMax={10000}
+                      scrollLeft={-this.state.scrollX}
+                      scrollRight={-this.state.scrollX + (width - 25)}/>
           <rect x="0" y="0" width={width} height={height} fill="none" stroke="gray"/>
         </svg>
       </div>
@@ -400,7 +405,7 @@ export default class PianoRoll extends React.Component {
 }
 
 function getPosition(event, element) {
-  const rect = (element || event.target).getBoundingClientRect();
+  const rect = element.getBoundingClientRect();
   return {
     x: event.clientX - rect.left,
     y: event.clientY - rect.top

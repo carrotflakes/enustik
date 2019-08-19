@@ -7,6 +7,7 @@ const bpm = 120;
 
 const PLAY = 'enustik/player/PLAY';
 const STOP = 'enustik/player/STOP';
+const SET_TICK = 'enustik/player/SET_TICK';
 
 export function play() {
   return {
@@ -20,9 +21,17 @@ export function stop() {
   };
 }
 
+export function setTick(tick) {
+  return {
+    type: SET_TICK,
+    tick
+  };
+}
+
 
 const initialState = {
-  playing: false
+  playing: false,
+  tick: 0,
 };
 
 export function reducer(state=initialState, action) {
@@ -37,6 +46,12 @@ export function reducer(state=initialState, action) {
       return {
         ...state,
         playing: false
+      };
+    },
+    [SET_TICK]({tick}) {
+      return {
+        ...state,
+        tick
       };
     },
   }[action.type] || (()=>state))(action);
