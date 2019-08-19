@@ -4,6 +4,7 @@ import Selector from './Selector';
 import HScrollBar from './HScrollBar';
 import { resolution } from '../consts';
 import { getPosition, touchEventWrap, clamp } from '../util';
+import { setListener, unsetListener } from '../mouseManager';
 
 export default class PianoRoll extends React.Component {
   constructor(props) {
@@ -30,11 +31,8 @@ export default class PianoRoll extends React.Component {
   componentDidMount() {
     console.log('mount');
     this.eventListeners = {
-      mouseup: this.onMouseUp.bind(this),
       mousemove: this.onMouseMove.bind(this),
-      touchend: touchEventWrap(this.onMouseUp).bind(this),
       touchmove: touchEventWrap(this.onMouseMove).bind(this),
-      touchcancel: touchEventWrap(this.onMouseUp).bind(this),
       keydown: e => {
         if (e.code === 'KeyX' && e.ctrlKey && !e.shiftKey && !e.altKey) {
           this.cutEvents();
@@ -76,8 +74,10 @@ export default class PianoRoll extends React.Component {
             notenum,
             start: tick,
             duration: resolution * n / d
-          },
-          mouseMove: e => {
+          }
+        });
+        setListener(
+          e => {
             const {notenum, tick} = this.notePosition(getPosition(e, this.main.current));
             const {durationUnit: {n, d}} = this.state;
             const event = this.state.event;
@@ -90,17 +90,14 @@ export default class PianoRoll extends React.Component {
             e.preventDefault();
             return false;
           },
-          mouseUp: e => {
+          e => {
             this.props.addNote(this.state.event);
             this.setState({
               mode: null,
-              event: null,
-              mouseMove: null,
-              mouseUp: null
+              event: null
             });
             return false;
-          }
-        });
+          });
         return false;
       }
       case 'move': {
@@ -116,8 +113,10 @@ export default class PianoRoll extends React.Component {
             mode: 'moving',
             movingEvents,
             moveOffsetX: baseX - event.start / resolution * this.state.widthScale,
-            moveOffsetY: 0,
-            mouseMove: e => {
+            moveOffsetY: 0
+          });
+          setListener(
+            e => {
               const {x, y} = getPosition(e, this.main.current);
               const {notenum, tick} = this.notePosition({
                 x: x - this.state.moveOffsetX,
@@ -136,17 +135,14 @@ export default class PianoRoll extends React.Component {
               e.preventDefault();
               return false;
             },
-            mouseUp: e => {
+            e => {
               this.props.moveEvents(this.state.movingEvents);
               this.setState({
                 mode: null,
-                movingEvents: null,
-                mouseMove: null,
-                mouseUp: null
+                movingEvents: null
               });
               return false;
-            }
-          });
+            });
         }
         return false;
       }
@@ -163,30 +159,29 @@ export default class PianoRoll extends React.Component {
       }
     case 'scroll': {
       const scroll = {x, y};
-        this.setState({
-          mode: 'scrolling',
-          mouseMove: e => {
-            const {x, y} = getPosition(e, this.main.current);
-            const {scrollX, scrollY} = this.state;
-            const newScrollX = -clamp(-(scrollX + (x - scroll.x)), 0,
-                                      this.state.widthScale * 100 - (this.props.width-25));
-            const newScrollY = -clamp(-(scrollY + (y - scroll.y)), 0,
-                                      this.state.heightScale * 128 - (this.props.height-40));
-            this.setState({
-              scrollX: newScrollX,
-              scrollY: newScrollY
-            });
-            e.preventDefault();
-            return false;
-          },
-          mouseUp: e => {
-            this.setState({
-              mode: null,
-              mouseMove: null,
-              mouseUp: null
-            });
-            return false;
-          }
+      this.setState({
+        mode: 'scrolling'
+      });
+      setListener(
+        e => {
+          const {x, y} = getPosition(e, this.main.current);
+          const {scrollX, scrollY} = this.state;
+          const newScrollX = -clamp(-(scrollX + (x - scroll.x)), 0,
+                                    this.state.widthScale * 100 - (this.props.width-25));
+          const newScrollY = -clamp(-(scrollY + (y - scroll.y)), 0,
+                                    this.state.heightScale * 128 - (this.props.height-40));
+          this.setState({
+            scrollX: newScrollX,
+            scrollY: newScrollY
+          });
+          e.preventDefault();
+          return false;
+        },
+        e => {
+          this.setState({
+            mode: null
+          });
+          return false;
         });
         return false;
       }
@@ -201,8 +196,10 @@ export default class PianoRoll extends React.Component {
             width() {return Math.abs(this.start.baseX - this.end.baseX);},
             height() {return Math.abs(this.start.baseY - this.end.baseY);},
           },
-          selectedNotes: [],
-          mouseMove: e => {
+          selectedNotes: []
+        });
+        setListener(
+          e => {
             const rectangle = {
                 ...this.state.rectangle,
               end: this.notePosition(getPosition(e, this.main.current))
@@ -221,36 +218,25 @@ export default class PianoRoll extends React.Component {
             e.preventDefault();
             return false;
           },
-          mouseUp: e => {
+          e => {
             this.setState({
               mode: null,
-              rectangle: null,
-              mouseMove: null,
-              mouseUp: null
+              rectangle: null
             });
             return false;
-          }
-        });
+          });
         return false;
       }
     }
   }
 
   onMouseMove(e) {
-    if (this.state.mouseMove)
-      return this.state.mouseMove(e);
-
     const {notenum, rawTick} = this.notePosition(getPosition(e, this.main.current));
     const event = this.props.events.find(
       event => event.notenum === notenum &&
         event.start <= rawTick &&
         rawTick <= event.start + event.duration);
     this.setState({cursor: event ? 'pointer' : 'default'});
-  }
-
-  onMouseUp(e) {
-    if (this.state.mouseUp)
-      return this.state.mouseUp(e);
   }
 
   cutEvents() {
