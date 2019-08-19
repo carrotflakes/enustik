@@ -1,5 +1,6 @@
 import React from 'react';
 import { getPosition, touchEventWrap, clamp } from '../util';
+import { setListener } from '../mouseManager';
 
 export default class HScrollBar extends React.Component {
   constructor(props) {
@@ -8,15 +9,50 @@ export default class HScrollBar extends React.Component {
   }
 
   onMouseDownOnBar(e) {
-    const {x} = getPosition(e, this.bar.current);
-    const {width, height, scrollMin, scrollMax, scrollLeft, scrollRight} = this.props;
-    const ratio = (x - height) / (width - height - 2);
-    const center = ratio * (scrollMax - scrollMin) - scrollMin;
+    this.mouseMove(e, 0);
+    setListener(
+      e => {
+        this.mouseMove(e, 0);
+        e.preventDefault();
+        return false;
+      },
+      e => {
+        return false;
+      });
+    return false;
+  }
+
+  onMouseDownOnBarCurrent(e) {
+    const {scrollLeft, scrollRight} = this.props;
+    const currentCenter = (scrollRight + scrollLeft) / 2;
+    const centerOffset = currentCenter - this.getCenter(e);
+    setListener(
+      e => {
+        this.mouseMove(e, centerOffset);
+        e.preventDefault();
+        return false;
+      },
+      e => {
+        return false;
+      });
+    return false;
+  }
+
+  mouseMove(e, offset) {
+    const center = this.getCenter(e) + offset;
+    const {scrollMin, scrollMax, scrollLeft, scrollRight} = this.props;
     const left = clamp(
       center - (scrollRight - scrollLeft) / 2,
       scrollMin,
       scrollMax - (scrollRight - scrollLeft));
     this.props.onSet(left);
+  }
+
+  getCenter(e) {
+    const {x} = getPosition(e, this.bar.current);
+    const {width, height, scrollMin, scrollMax} = this.props;
+    const ratio = (x - height) / (width - height - 2);
+    return ratio * (scrollMax - scrollMin) - scrollMin;
   }
 
   render() {
@@ -36,7 +72,9 @@ export default class HScrollBar extends React.Component {
               fill="#d0d0d0"/>
         <rect x={height + 1 + left * (width - height - 2)} y={1}
               width={(right - left) * (width - height - 2)} height={height - 2}
-              fill="#c8c8c8"/>
+              fill="#c8c8c8"
+              onMouseDown={this.onMouseDownOnBarCurrent.bind(this)}
+              onTouchStart={touchEventWrap(this.onMouseDownOnBarCurrent).bind(this)}/>
       </g>
     );
   }

@@ -4,7 +4,7 @@ import Selector from './Selector';
 import HScrollBar from './HScrollBar';
 import { resolution } from '../consts';
 import { getPosition, touchEventWrap, clamp } from '../util';
-import { setListener, unsetListener } from '../mouseManager';
+import { setListener } from '../mouseManager';
 
 export default class PianoRoll extends React.Component {
   constructor(props) {
