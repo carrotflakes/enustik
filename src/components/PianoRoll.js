@@ -3,6 +3,7 @@ import './PianoRoll.css';
 import Selector from './Selector';
 import HScrollBar from './HScrollBar';
 import { resolution } from '../consts';
+import { getPosition, touchEventWrap, clamp } from '../util';
 
 export default class PianoRoll extends React.Component {
   constructor(props) {
@@ -396,33 +397,11 @@ export default class PianoRoll extends React.Component {
           <HScrollBar x={0} y={height-20} width={width} height={20}
                       scrollMin={0} scrollMax={10000}
                       scrollLeft={-this.state.scrollX}
-                      scrollRight={-this.state.scrollX + (width - 25)}/>
+                      scrollRight={-this.state.scrollX + (width - 25)}
+                      onSet={left => this.setState({scrollX: -left})}/>
           <rect x="0" y="0" width={width} height={height} fill="none" stroke="gray"/>
         </svg>
       </div>
     );
   }
-}
-
-function getPosition(event, element) {
-  const rect = element.getBoundingClientRect();
-  return {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top
-  };
-}
-
-function touchEventWrap(eventListener) {
-  return function(event) {
-    const touch = event.changedTouches[0];
-    if (touch) {
-      event.clientX = Math.round(touch.clientX);
-      event.clientY = Math.round(touch.clientY);
-      return eventListener.call(this, event);
-    }
-  };
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
 }
