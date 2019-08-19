@@ -4,6 +4,12 @@ The web music sequencer.
 
 ![enustik-logo](enustik_logo.png)
 
+## Technical features
+- React/Redux/Saga
+- SVG as GUI
+- A practice for better GUI coding
+- Can be used on PC or tablet
+
 ## Usage
 
 ## Author
