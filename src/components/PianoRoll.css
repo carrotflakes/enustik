@@ -1,14 +1,22 @@
-.tools > div {
+.tools {
+  height: 34px;
+}
+
+.tools > button {
   display: inline-block;
+  height: 32px;
   cursor: pointer;
-  padding: 0 2px;
-  margin: 2px;
+  padding: auto 2px;
+  margin: 1px;
+  box-sizing: border-box;
   border: solid 1px #999;
   border-radius: 3px;
   color: #999;
+  background: #fff;
+  font-size: 16px;
 }
 
-.tools > .active {
+.tools > button.active {
   border: solid 1px orange;
   color: orange;
 }

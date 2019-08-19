@@ -13,10 +13,33 @@ html, body {
 }
 
 .app > *:nth-child(1) {
-  flex: 0 0 auto;
+  flex: 0 0 34px;
 }
 
 .app > *:nth-child(2) {
   flex: 1 0 20px;
   overflow: hidden;
+}
+
+.tools {
+  height: 34px;
+}
+
+.tools > button {
+  display: inline-block;
+  height: 32px;
+  cursor: pointer;
+  padding: auto 2px;
+  margin: 1px;
+  box-sizing: border-box;
+  border: solid 1px #999;
+  border-radius: 3px;
+  color: #999;
+  background: #fff;
+  font-size: 16px;
+}
+
+.tools > button.active {
+  border: solid 1px orange;
+  color: orange;
 }

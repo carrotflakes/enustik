@@ -10,8 +10,6 @@ export default class PianoRoll extends React.Component {
     super(props);
     const heightScale = 6 * 3;
     this.state = {
-      width: 600,
-      height: 400,
       widthScale: 24 * 3,
       heightScale,
       scrollX: 0,
@@ -26,7 +24,6 @@ export default class PianoRoll extends React.Component {
       selectedNotes: [],
       cursor: 'pointer',
     };
-    this.root = React.createRef();
     this.main = React.createRef();
   }
 
@@ -38,12 +35,6 @@ export default class PianoRoll extends React.Component {
       touchend: touchEventWrap(this.onMouseUp).bind(this),
       touchmove: touchEventWrap(this.onMouseMove).bind(this),
       touchcancel: touchEventWrap(this.onMouseUp).bind(this),
-      resize: e => {
-        this.setState({
-          width: this.root.current.clientWidth,
-          height: this.root.current.clientHeight - 35
-        });
-      },
       keydown: e => {
         if (e.code === 'KeyX' && e.ctrlKey && !e.shiftKey && !e.altKey) {
           this.cutEvents();
@@ -62,8 +53,6 @@ export default class PianoRoll extends React.Component {
     for (let key in this.eventListeners) {
       window.addEventListener(key, this.eventListeners[key], {passive: false});
     }
-
-    this.eventListeners.resize();
   }
 
   componentWillUnmount() {
@@ -180,9 +169,9 @@ export default class PianoRoll extends React.Component {
             const {x, y} = getPosition(e, this.main.current);
             const {scrollX, scrollY} = this.state;
             const newScrollX = -clamp(-(scrollX + (x - scroll.x)), 0,
-                                      this.state.widthScale * 100 - (this.state.width-25));
+                                      this.state.widthScale * 100 - (this.props.width-25));
             const newScrollY = -clamp(-(scrollY + (y - scroll.y)), 0,
-                                      this.state.heightScale * 128 - (this.state.height-40));
+                                      this.state.heightScale * 128 - (this.props.height-40));
             this.setState({
               scrollX: newScrollX,
               scrollY: newScrollY
@@ -309,7 +298,9 @@ export default class PianoRoll extends React.Component {
     const notes = this.props.events.map(event =>
       note((this.state.movingEvents || []).find(me => me.id === event.id) || event));
     this.state.event && notes.push(note(this.state.event));
-    const {width, height} = this.state;
+    const {width, height} = this.props;
+    const toolsHeight = 34;
+    const svgHeight = height - toolsHeight;
     const piano = Array(128).fill(0).map(
       (x, i) => <rect x="0" y={this.state.heightScale * (127 - i)}
                       width="24"
@@ -349,23 +340,23 @@ export default class PianoRoll extends React.Component {
     ];
 
     return (
-      <div ref={this.root}>
+      <div>
         <div styleName="tools">
           {
             'note move remove scroll select'.split(' ').map(x => (
-              <div onClick={() => this.setState({tool: x})} key={`tool/${x}`}
-                   styleName={this.state.tool === x ? 'active' : ''}>{x}</div>))
+              <button onClick={() => this.setState({tool: x})} key={`tool/${x}`}
+                      styleName={this.state.tool === x ? 'active' : ''}>{x}</button>))
           }
           <Selector items={Array(16).fill(0).map((x, i) => ({text: `ch ${i}`, value: i}))}
                     onSelect={item => this.setState({currentChannel: item.value})}/>
           <Selector items={durationUnits}
                     onSelect={item => this.setState({durationUnit: item.value})}/>
         </div>
-        <svg viewBox={[0, 0, width, height].join(' ')} width={width} height={height}
+        <svg viewBox={[0, 0, width, svgHeight].join(' ')} width={width} height={svgHeight}
              style={{'cursor': this.state.cursor}}>
-          <svg viewBox={[0, -this.state.scrollY, 24, height-40].join(' ')}
+          <svg viewBox={[0, -this.state.scrollY, 24, svgHeight-40].join(' ')}
                x="0" y="20"
-               width={24} height={height-40}>
+               width={24} height={svgHeight-40}>
             {piano}
             {pianoMarks}
           </svg>
@@ -374,9 +365,9 @@ export default class PianoRoll extends React.Component {
                width={width-25} height={20}>
             {tickMarks}
           </svg>
-          <svg viewBox={[-this.state.scrollX, -this.state.scrollY, width-25, height-40].join(' ')}
+          <svg viewBox={[-this.state.scrollX, -this.state.scrollY, width-25, svgHeight-40].join(' ')}
                x="25" y="20"
-               width={width-25} height={height-40}
+               width={width-25} height={svgHeight-40}
                onMouseDown={this.onMouseDownOnMain.bind(this)}
                onTouchStart={touchEventWrap(this.onMouseDownOnMain).bind(this)}
                ref={this.main}>
@@ -394,12 +385,12 @@ export default class PianoRoll extends React.Component {
                   x2={this.props.tick * this.state.widthScale / resolution} y2={10000}
                   stroke="orange"/>
           </svg>
-          <HScrollBar x={0} y={height-20} width={width} height={20}
+          <HScrollBar x={0} y={svgHeight-20} width={width} height={20}
                       scrollMin={0} scrollMax={10000}
                       scrollLeft={-this.state.scrollX}
                       scrollRight={-this.state.scrollX + (width - 25)}
                       onSet={left => this.setState({scrollX: -left})}/>
-          <rect x="0" y="0" width={width} height={height} fill="none" stroke="gray"/>
+          <rect x="0" y="0" width={width} height={svgHeight} fill="none" stroke="gray"/>
         </svg>
       </div>
     );

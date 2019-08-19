@@ -5,6 +5,11 @@ import './App.css';
 export default class App extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      width: 600,
+      height: 400
+    };
+    this.root = React.createRef();
   }
 
   componentDidMount() {
@@ -18,11 +23,19 @@ export default class App extends React.Component {
           this.props.redo();
           e.stopPropagation();
         }
-      }
+      },
+      resize: e => {
+        this.setState({
+          width: this.root.current.clientWidth,
+          height: this.root.current.clientHeight
+        });
+      },
     };
     for (let key in this.eventListeners) {
       window.addEventListener(key, this.eventListeners[key], {passive: false});
     }
+
+    this.eventListeners.resize();
   }
 
   componentWillUnmount() {
@@ -34,14 +47,15 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <div styleName="app">
-        <div>
+      <div styleName="app"
+           ref={this.root}>
+        <div styleName="tools">
           <button onClick={this.props.play}>play</button>
           <button onClick={this.props.stop}>stop</button>
           <button onClick={this.props.undo}>undo</button>
           <button onClick={this.props.redo}>redo</button>
         </div>
-        <PianoRoll width="600" height="400"/>
+        <PianoRoll width={this.state.width} height={this.state.height - 34}/>
       </div>
     );
   }
